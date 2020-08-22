@@ -2,7 +2,7 @@ const URL = require('url');
 const axios = require('axios');
 const qs = require('querystring');
 const get = require('lodash.get');
-const { getCredetials } = require('./store-utils');
+const getCredentials = require('./find-credentials');
 
 module.exports.setBody = (ctx, bodyObject) => {
   const oldBody = ctx.request.getBody();
@@ -34,15 +34,18 @@ module.exports.findAccessToken = async (ctx) => {
 }
 
 module.exports.accessTokenExpired = async (ctx) => {
-  const expiresAt = await ctx.store.getItem('pinbank_token_expires_at');
-  return Date.now() < Number(expiresAt);
+  const [expiresAt, accessToken] = await Promise.all([
+    ctx.store.getItem('pinbank_token_expires_at'),
+    ctx.store.getItem('pinbank_access_token')
+  ]);
+  return Date.now() < Number(expiresAt) || !accessToken;
 }
 
 module.exports.makeAuthorization = async (ctx) => {
   if (!(await this.accessTokenExpired(ctx)))
     return this.findAccessToken(ctx);
 
-  const { userName: username, keyValue: password } = await getCredetials(ctx);
+  const { userName: username, keyValue: password } = await getCredentials(ctx);
   const grant_type = 'password';
   const parsedUrl = URL.parse(ctx.request.getUrl());
   
@@ -60,7 +63,7 @@ module.exports.makeAuthorization = async (ctx) => {
     if (!accessToken)
       throw new Error('Token de acesso não disponível.');
 
-    const tokenExpiresAt = Date.now() + expiresIn;
+    const tokenExpiresAt = Date.now() + Number(expiresIn);
     await ctx.store.setItem('pinbank_access_token', accessToken);
     await ctx.store.setItem('pinbank_token_expires_at', tokenExpiresAt);
 

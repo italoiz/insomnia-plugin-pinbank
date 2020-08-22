@@ -4,7 +4,7 @@ const Crypto = require('./crypto');
 
 module.exports = async (ctx) => {
   if (!isPinbankRequest(ctx)) return;
-  
+
   const credentials = await findCredentials(ctx);
   const crypto = new Crypto({ ctx, credentials });
   const body = getBody(ctx);

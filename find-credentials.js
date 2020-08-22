@@ -1,34 +1,27 @@
-const { hasCredentials, getCredetials, saveCredentials } = require('./store-utils');
+module.exports.isValidCredentials = async (ctx) => {
+  const credentials = ctx.request.getEnvironmentVariable('pinbankCredentials') || ctx.request.getEnvironmentVariable('pinbank_credentials');
+  const keys = ['clientCode', 'channelCode', 'keyValue', 'userName', 'requestOrigin'];
+  const validKeys = [];
+
+  Object.entries(credentials || {}).forEach(([keyName, value]) => {
+    if (typeof value !== 'undefined' && !!value) validKeys.push(keyName);
+  });
+
+  if (keys.length !== validKeys.length) {
+    await ctx.app.alert('Credenciais inválidas.', 'Crie uma chave nas suas variaveis ambientes com o nome de "pinbankCredentials" ou "pinbank_credentials" com as chaves: clientCode, channelCode, keyValue, userName, requestOrigin.');
+    return false;
+  }
+
+  return true;
+}
+
+module.exports.getCredentials = async (ctx) => {
+  return ctx.request.getEnvironmentVariable('pinbankCredentials') || ctx.request.getEnvironmentVariable('pinbank_credentials');
+}
 
 module.exports = async (ctx) => {
-  if ((await hasCredentials(ctx)))
-    return getCredetials(ctx);
+  if ((await this.isValidCredentials(ctx)))
+    return this.getCredentials(ctx);
 
-  try {
-    await ctx.app.alert('Credenciais não encontradas!', 'Para continuar a requisição é necessário informar as credenciais recebidas da PinBank. São elas: CodigoCliente, CodigoCanal, KeyValue, UserName e RequestOrigin. Você só precisa informar apenas uma vez, salvaremos isto no seu computador.');
-
-    const clientCode = await ctx.app.prompt('Informe o CodigoCliente', {
-      cancelable: true,
-      submitName: 'Próximo',
-    });
-    const channelCode = await ctx.app.prompt('Informe o CodigoCanal', {
-      cancelable: true,
-      submitName: 'Próximo',
-    });
-    const keyValue = await ctx.app.prompt('Informe a KeyValue', {
-      cancelable: true,
-      submitName: 'Próximo',
-    });
-    const userName = await ctx.app.prompt('Informe o UserName', {
-      cancelable: true,
-      submitName: 'Próximo',
-    });
-    const requestOrigin = await ctx.app.prompt('Informe o RequestOrigin', {
-      cancelable: true,
-      submitName: 'Salvar',
-    });
-    const credentials = { clientCode, channelCode, keyValue, userName, requestOrigin };
-    await saveCredentials(ctx, credentials);
-    return credentials;
-  } catch (err) {}
+  throw new Error('Você precisa criar as variaveis de ambiente corretamente.');
 };
