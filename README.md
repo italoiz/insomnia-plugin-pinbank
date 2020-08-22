@@ -6,7 +6,17 @@ Access the Application / Preferences menu and then select the Plugins tab, enter
 
 ## How it's works!
 
-On the first request to PinBank url, the plugin ask for your credentials provided by PinBank. The credentials is stored on the insomnia data to next requests.
+You should create a environment variable called `pinbank_credentials` or `pinbankCredentials` with follow object:
+
+```json
+{
+  "clientCode": 0,
+  "channelCode": 0,
+  "keyValue": "string",
+  "userName": "string",
+  "requestOrigin": 0
+}
+```
 
 To make the request for PinBank with JSON object, follow the sample:
 
