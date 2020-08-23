@@ -38,7 +38,7 @@ module.exports.accessTokenExpired = async (ctx) => {
     ctx.store.getItem('pinbank_token_expires_at'),
     ctx.store.getItem('pinbank_access_token')
   ]);
-  return Date.now() < Number(expiresAt) || !accessToken;
+  return Date.now() > Number(expiresAt) || !accessToken;
 }
 
 module.exports.makeAuthorization = async (ctx) => {
@@ -63,7 +63,7 @@ module.exports.makeAuthorization = async (ctx) => {
     if (!accessToken)
       throw new Error('Token de acesso não disponível.');
 
-    const tokenExpiresAt = Date.now() + Number(expiresIn);
+    const tokenExpiresAt = Date.now() + Number(expiresIn) * 1000;
     await ctx.store.setItem('pinbank_access_token', accessToken);
     await ctx.store.setItem('pinbank_token_expires_at', tokenExpiresAt);
 
