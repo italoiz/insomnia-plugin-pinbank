@@ -27,7 +27,7 @@ module.exports = async (ctx) => {
    */
   const { channelCode: CodigoCanal, clientCode: CodigoCliente } = credentials;
   const Json = crypto.encrypt({
-    Data: { ...body, CodigoCanal, CodigoCliente }
+    Data: { CodigoCanal, CodigoCliente,...body }
   });
   setBody(ctx, { Data: { Json } });
 };
